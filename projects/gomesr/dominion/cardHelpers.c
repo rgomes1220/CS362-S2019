@@ -9,7 +9,7 @@
 int smithyCard(int player, struct gameState *state,int handPos,int trashFlag){
 
     //+3 Cards
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i <= 3; i++)
     {
     drawCard(player, state);
     }
@@ -26,7 +26,7 @@ int adventurerCard(struct gameState *state, int currentPlayer){
     int temphand[MAX_HAND];// moved above the if statement
     int z = 0;// this is the counter for the temp hand
 
-    while(drawntreasure<2){
+    while(drawntreasure<=2){
         if (state->deckCount[currentPlayer] <1){//if the deck is empty we need to shuffle discard and add to deck
             shuffle(currentPlayer, state);
         }
@@ -50,15 +50,8 @@ int adventurerCard(struct gameState *state, int currentPlayer){
 
 
 int villageCard(int player, struct gameState *state,int handPos,int trashFlag){
-    //+1 Card
-    drawCard(player, state);
 
-    //+2 Actions
-    state->numActions = state->numActions + 2;
-
-    //discard played card from hand
-    discardCard(handPos, player, state, trashFlag);
-    return 0;
+    return greatHallCard(player, state, handPos, trashFlag);
 
 
 }
