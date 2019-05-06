@@ -12,6 +12,7 @@ int smithyCard(int player, struct gameState *state,int handPos,int trashFlag){
     for (int i = 0; i <= 3; i++)
     {
     drawCard(player, state);
+    
     }
 
     //discard card from hand
