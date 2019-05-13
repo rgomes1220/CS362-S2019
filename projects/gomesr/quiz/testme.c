@@ -5,14 +5,25 @@
 
 char inputChar()
 {
-    // TODO: rewrite this function
-    return ' ';
+    //generate and return a random character between
+    //ascii 32 (whitespace) and ascii 125 (})
+    return (rand() % (126 - 32)) + 32;
 }
 
+// genrate random string with letters between ascii 101 (e)
+// and ascii 116 (t)
 char *inputString()
 {
-    // TODO: rewrite this function
-    return "";
+    static char result[6];
+    int count = 0;
+    while (count < 5)//fill positions 0-4, 5 will have null terminator
+    {
+      result[count] = ((rand() % (117 - 101)) + 101);;
+      count++;
+    }
+
+    result[5] = '\0';
+    return result;
 }
 
 void testme()
