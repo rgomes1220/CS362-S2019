@@ -1,4 +1,4 @@
-// random test for great hall
+// random test for embargo
 
 #include <time.h>
 #include <string.h>

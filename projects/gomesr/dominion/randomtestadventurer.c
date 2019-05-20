@@ -76,9 +76,6 @@ int main() {
 
     for (int i = 0; i < TOTAL_TESTS; i++) {
 
-
-
-
         int randomSeed = rand();
         // int players =2;
         int players = (rand() % (4 - 2 + 1)) + 2;
@@ -94,8 +91,6 @@ int main() {
         // if (gameinit==-1) {
         //     failedTests++;
         // }
-
-
 
         memcpy(&testG, &theGame, sizeof(struct gameState));
 
