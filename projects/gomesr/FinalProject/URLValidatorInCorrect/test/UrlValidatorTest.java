@@ -125,6 +125,75 @@ protected void setUp() {
       }
    }
 
+   /** Unit Test For Allowing Custom Schemes
+    * Two sets of arrays for authority, ports, and paths
+    * One set contains all valid parts other all invalid
+    * Schemes array contains schemes that are not valid by default
+    * and should only pass if schemes array is passed to UrlValidator constructor
+    *  **/
+   public void testSchemes() {
+	   //custom schemes
+       String[] schemes = {"file", "rtsp", "session", "tag", "tel", "cid", "info"};
+       
+       // valid parts
+       String[] schemesParts = {"rtsp://", "session://", "tag://", "tel://", "cid://", "info://"};
+       String[] authorityValid = {"www.google.com", "www.twitch.tv", "stackoverflow.com", "0.0.0.0", "go.au"};
+       String[] portValid = {":0", ":8080", ":80", ":65535"};
+       String[] pathsValid = {"/tests", "/123", "/$"};
+       String[] queriesValid = {"?action=view","?action=edit&mode=up", ""};
+       
+       UrlValidator urlValidator1 = new UrlValidator(schemes);			//custom schemes should be allowed
+       UrlValidator urlValidator2 = new UrlValidator();					//custom schemes not allowed
+      
+       // build URLs and test
+       for (int sIndex = 0; sIndex < schemesParts.length; sIndex++) {
+    	   StringBuilder test = new StringBuilder();
+    	   test.append(schemesParts[sIndex]);
+    	   for (int aIndex = 0; aIndex < authorityValid.length; aIndex++) {
+    		   test.append(authorityValid[aIndex]);
+    		   for (int pIndex = 0; pIndex < portValid.length; pIndex++) {
+    			   test.append(portValid[pIndex]);
+    			   for (int paIndex = 0; paIndex < pathsValid.length; paIndex++) {
+    				   test.append(pathsValid[paIndex]);
+    				   for (int qIndex = 0; qIndex < queriesValid.length; qIndex++) {
+    					   test.append(queriesValid[qIndex]);
+    					   String testUrl = test.toString();
+    					   assertTrue(urlValidator1.isValid(testUrl));
+    					   assertFalse(urlValidator2.isValid(testUrl));
+    				   }
+    			   }
+    		   }
+    	   }
+       }
+       
+       // invalid parts (with exception of queries)
+       String[] authorityInvalid = {"256.256.256.256", "go.a1a", "toast", "1.2.3.4", "go."};
+       String[] portInvalid = {":999999999999999999", ":8080a", ":-1"};
+       String[] pathsInvalid = {"/..", "//file"};
+
+       
+       // build URLs and test
+       for (int sIndex = 0; sIndex < schemesParts.length; sIndex++) {
+    	   StringBuilder test = new StringBuilder();
+    	   test.append(schemesParts[sIndex]);
+    	   for (int aIndex = 0; aIndex < authorityInvalid.length; aIndex++) {
+    		   test.append(authorityInvalid[aIndex]);
+    		   for (int pIndex = 0; pIndex < portInvalid.length; pIndex++) {
+    			   test.append(portInvalid[pIndex]);
+    			   for (int paIndex = 0; paIndex < pathsInvalid.length; paIndex++) {
+    				   test.append(pathsInvalid[paIndex]);
+    				   for (int qIndex = 0; qIndex < queriesValid.length; qIndex++) {
+    					   test.append(queriesValid[qIndex]);
+    					   String testUrl = test.toString();
+    					   assertFalse(urlValidator1.isValid(testUrl));
+    					   assertFalse(urlValidator2.isValid(testUrl));
+    				   }
+    			   }
+    		   }
+    	   }
+       }
+   }
+   
    public void testValidator202() {
        String[] schemes = {"http","https"};
        UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.NO_FRAGMENTS);
