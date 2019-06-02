@@ -16,6 +16,7 @@
  */
 
 import junit.framework.TestCase;
+import java.util.Random;
 
 /**
  * Performs Validation Test for url validations.
@@ -125,6 +126,51 @@ protected void setUp() {
       }
    }
 
+   /** Random Test For Allowing Custom Schemes
+    *  Randomly generates 2000 strings to be used as custom schemes between
+    *  the length of 1 and 10 characters
+    *  Initializes two UrlValidator objects, one with the schemes and one
+    *  without. 
+    *  Attaches randomly generated schemes to valid authority, port, path
+    *  and query
+    *  source for random string generation: https://www.baeldung.com/java-random-string
+    */
+   public void testSchemesRandom() {
+	   
+	   // initialize arrays
+	   String[] schemes = new String[2000];
+	   String[] validSchemes = new String[2000];
+	   
+	   //randomly generate a scheme between 1 and 10 characters
+	   for (int i = 0; i < 2000; i++) {
+		   int leftLimit = 97; //letter 'a'
+		   int rightLimit = 122; //letter 'z'
+		   Random random = new Random();
+		   int num = random.nextInt(10) + 1;
+		   StringBuilder test = new StringBuilder();
+		   for (int x = 0; i < num; i++) {
+			   int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+			   test.append((char) randomLimitedInt);
+		   }
+		   schemes[i] = test.toString();
+		   test.append("://");
+		   validSchemes[i] = test.toString(); 
+   	   }
+	   
+	   // create UrlValidator objects
+	   UrlValidator urlValidator1 = new UrlValidator(schemes);
+	   UrlValidator urlValidator2 = new UrlValidator();
+
+	   //add authority, port, path, and query
+	   
+	   
+	   //convert to string
+	   
+	   
+	   //test if it is valid (UrlValidator is constructed with schemes)
+	   //or if it is invalid (UrlValidator is default)
+   }
+   
    public void testValidator202() {
        String[] schemes = {"http","https"};
        UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.NO_FRAGMENTS);
