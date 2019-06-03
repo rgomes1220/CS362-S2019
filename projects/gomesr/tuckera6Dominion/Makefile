@@ -87,9 +87,12 @@ randomtestresults: randomtestadventurer randomtestgreathall randomtestembargo
 
 # assignment 5 tests
 assignment5: randomtestresults unittestresults
+	gcov dominion.c -b >> gcovDominion.out
+	cat dominion.c.gcov >> gcovDominion.out
+	gcov dominion.c -fb >> gcovDominion.out
 
 
 all: playdom player
 
 clean:
-	rm -f *.o playdom.exe playdom player player.exe  *.gcov *.gcda *.gcno *.so *.out testDrawCard testDrawCard.exe cardtest1 cardtest2 cardtest3 cardtest4 unittest1 unittest2 unittest3 unittest4 randomtestadventurer randomtestgreathall randomtestembargo
+	rm -f *.o playdom.exe playdom player player.exe  *.gcov *.gcda *.gcno *.so *.out testDrawCard testDrawCard.exe cardtest1 cardtest2 cardtest3 cardtest4 unittest1 unittest2 unittest3 unittest4 randomtestadventurer randomtestgreathall randomtestembargo gcovDominion.out
