@@ -137,38 +137,63 @@ protected void setUp() {
     */
    public void testSchemesRandom() {
 	   
-	   // initialize arrays
-	   String[] schemes = new String[2000];
-	   String[] validSchemes = new String[2000];
-	   
 	   //randomly generate a scheme between 1 and 10 characters
 	   for (int i = 0; i < 2000; i++) {
-		   int leftLimit = 97; //letter 'a'
+		   int leftLimit = 97; //letter 'A'
 		   int rightLimit = 122; //letter 'z'
 		   Random random = new Random();
 		   int num = random.nextInt(10) + 1;
 		   StringBuilder test = new StringBuilder();
-		   for (int x = 0; i < num; i++) {
+		   for (int x = 0; x < num; x++) {
 			   int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
 			   test.append((char) randomLimitedInt);
 		   }
-		   schemes[i] = test.toString();
+		   String[] schemes = {test.toString()};
 		   test.append("://");
-		   validSchemes[i] = test.toString(); 
-   	   }
+		   String schemeValid = test.toString();
+		   
+		   //randomly select a valid authority, port, path, and query
+	       String[] authorityValid = {"www.google.com", "www.twitch.tv", "stackoverflow.com", "0.0.0.0", "go.au"};
+	       String[] portValid = {":0", ":8080", ":80", ":65535"};
+	       String[] pathsValid = {"/tests", "/123", "/$"};
+	       String[] queriesValid = {"?action=view","?action=edit&mode=up", ""};
+	       
+	       int authority = random.nextInt(5);
+	       int port = random.nextInt(4);
+	       int path = random.nextInt(3);
+	       int query = random.nextInt(3);
+	       
+	       test.append(authorityValid[authority]);
+	       test.append(portValid[port]);
+	       test.append(pathsValid[path]);
+	       test.append(queriesValid[query]);
+	       
+	       UrlValidator urlValidator1 = new UrlValidator(schemes);			//custom schemes should be allowed
+	       UrlValidator urlValidator2 = new UrlValidator();					//custom schemes not allowed
+	       
+	       String testUrl = test.toString();
+		   assertTrue(urlValidator1.isValid(testUrl));
+		   assertFalse(urlValidator2.isValid(testUrl));
+		   
+		   //randomly test invalid authority port, path
+		   authority = random.nextInt(5);
+		   port = random.nextInt(3);
+		   path = random.nextInt(2);
+	       String[] authorityInvalid = {"256.256.256.256", "go.a1a", "toast", "1.2.3.4", "go."};
+	       String[] portInvalid = {":999999999999999999", ":8080a", ":-1"};
+	       String[] pathsInvalid = {"/..", "//file"};
+	       
+	       StringBuilder newTest = new StringBuilder();
+	       newTest.append(schemeValid);
+	       newTest.append(authorityInvalid[authority]);
+	       newTest.append(portInvalid[port]);
+	       newTest.append(pathsInvalid[path]);
+	       
+	       testUrl = newTest.toString();
+		   assertFalse(urlValidator1.isValid(testUrl));
+		   assertFalse(urlValidator2.isValid(testUrl));
+	   }
 	   
-	   // create UrlValidator objects
-	   UrlValidator urlValidator1 = new UrlValidator(schemes);
-	   UrlValidator urlValidator2 = new UrlValidator();
-
-	   //add authority, port, path, and query
-	   
-	   
-	   //convert to string
-	   
-	   
-	   //test if it is valid (UrlValidator is constructed with schemes)
-	   //or if it is invalid (UrlValidator is default)
    }
    
    public void testValidator202() {
