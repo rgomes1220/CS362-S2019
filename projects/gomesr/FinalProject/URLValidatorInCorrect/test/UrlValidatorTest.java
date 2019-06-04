@@ -195,6 +195,8 @@ protected void setUp() {
 	   }
 	   
    }
+
+
    
    public void testValidator202() {
        String[] schemes = {"http","https"};
@@ -403,27 +405,133 @@ protected void setUp() {
     }
 
     static boolean incrementTestPartsIndex(int[] testPartsIndex, Object[] testParts) {
-      boolean carry = true;  //add 1 to lowest order part.
-      boolean maxIndex = true;
-      for (int testPartsIndexIndex = testPartsIndex.length; testPartsIndexIndex >= 0; --testPartsIndexIndex) {
-          int index = testPartsIndex[testPartsIndexIndex];
-         ResultPair[] part = (ResultPair[]) testParts[testPartsIndexIndex];
-         maxIndex &= (index == (part.length - 1));
-         
-         if (carry) {
-            if (index < part.length - 1) {
-            	index--;
-               testPartsIndex[testPartsIndexIndex] = index;
-               carry = false;
-            } else {
-               testPartsIndex[testPartsIndexIndex] = 0;
-               carry = true;
+        boolean carry = true;  //add 1 to lowest order part.
+        boolean maxIndex = true;
+        //previously incorrect with testPartsIndexIndex = testPartsIndex.length
+        for (int testPartsIndexIndex = testPartsIndex.length - 1; testPartsIndexIndex >= 0; --testPartsIndexIndex) {
+            int index = testPartsIndex[testPartsIndexIndex];
+            ResultPair[] part = (ResultPair[]) testParts[testPartsIndexIndex];
+            maxIndex &= (index == (part.length - 1));
+
+            if (carry) {
+                if (index < part.length - 1) {
+                    index++;//previously incorrect as index--
+                    testPartsIndex[testPartsIndexIndex] = index;
+                    carry = false;
+                } else {
+                    testPartsIndex[testPartsIndexIndex] = 0;
+                    carry = true;
+                }
             }
-         }
-      }
-      
-      return (!maxIndex);
-   }
+        }
+
+        return (!maxIndex);
+    }
+
+    //randomly generate ResultPairs and test that the incrementTestPartsIndex method
+    //will iterate over them properly
+    public void testRandomIncrementPartsIndex(){
+        Random random = new Random();
+
+        ResultPair[] randomTestUrlScheme = new ResultPair[random.nextInt(50) + 1];
+        ResultPair[] randomTestUrlAuthority = new ResultPair[random.nextInt(50) + 1];
+        ResultPair[] randomTestUrlPort = new ResultPair[random.nextInt(50) + 1];
+        ResultPair[] randomTestPath = new ResultPair[random.nextInt(50) + 1];
+        ResultPair[] randomTestUrlQuery = new ResultPair[random.nextInt(50) + 1];
+
+        int leftLimit = 97; //letter 'A'
+        int rightLimit = 122; //letter 'z'
+        int numChars;
+        StringBuilder randomString;
+
+        for (int i=0; i<randomTestUrlScheme.length; i++){
+            //random string of n characters
+            numChars = random.nextInt(10) + 1;
+            randomString = new StringBuilder();
+            for (int x = 0; x < numChars; x++) {
+                int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+                randomString.append((char) randomLimitedInt);
+            }
+
+            randomTestUrlScheme[i]=new ResultPair(randomString.toString(), random.nextBoolean());
+
+        }
+
+
+        for (int i=0; i<randomTestUrlAuthority.length; i++){
+            //random string of n characters
+            numChars = random.nextInt(10) + 1;
+            randomString = new StringBuilder();
+            for (int x = 0; x < numChars; x++) {
+                int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+                randomString.append((char) randomLimitedInt);
+            }
+
+            randomTestUrlAuthority[i]=new ResultPair(randomString.toString(), random.nextBoolean());
+
+        }
+
+
+        for (int i=0; i<randomTestUrlPort.length; i++){
+            //random string of n characters
+            numChars = random.nextInt(10) + 1;
+            randomString = new StringBuilder();
+            for (int x = 0; x < numChars; x++) {
+                int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+                randomString.append((char) randomLimitedInt);
+            }
+
+            randomTestUrlPort[i]=new ResultPair(randomString.toString(), random.nextBoolean());
+
+        }
+
+
+
+        for (int i=0; i<randomTestPath.length; i++){
+            //random string of n characters
+            numChars = random.nextInt(10) + 1;
+            randomString = new StringBuilder();
+            for (int x = 0; x < numChars; x++) {
+                int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+                randomString.append((char) randomLimitedInt);
+            }
+
+            randomTestPath[i]=new ResultPair(randomString.toString(), random.nextBoolean());
+
+        }
+
+
+
+        for (int i=0; i<randomTestUrlQuery.length; i++){
+            //random string of n characters
+            numChars = random.nextInt(10) + 1;
+            randomString = new StringBuilder();
+            for (int x = 0; x < numChars; x++) {
+                int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+                randomString.append((char) randomLimitedInt);
+            }
+            randomTestUrlQuery[i]=new ResultPair(randomString.toString(), random.nextBoolean());
+
+        }
+
+        Object[] sampleTestUrlParts = {randomTestUrlScheme, randomTestUrlAuthority, randomTestUrlPort, randomTestPath, randomTestUrlQuery};
+        int[] sampleTestPartsIndex = {0, 0, 0, 0, 0};
+
+        int totUrlsGenerated =0;
+        int expectedNumUrls = randomTestUrlScheme.length*randomTestUrlAuthority.length*
+                randomTestUrlPort.length*randomTestPath.length*randomTestUrlQuery.length;
+
+        do {
+            totUrlsGenerated++;
+
+        }while (incrementTestPartsIndex(sampleTestPartsIndex,sampleTestUrlParts));
+
+        System.out.println("total of " + expectedNumUrls + " expected");
+        System.out.println("total of " + totUrlsGenerated + " generated");
+
+        assertTrue(totUrlsGenerated==expectedNumUrls);
+
+    }
 
    private String testPartsIndextoString() {
        StringBuilder carryMsg = new StringBuilder("{");
