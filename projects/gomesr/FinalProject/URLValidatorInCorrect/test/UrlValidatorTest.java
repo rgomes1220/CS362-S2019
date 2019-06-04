@@ -403,14 +403,15 @@ protected void setUp() {
     static boolean incrementTestPartsIndex(int[] testPartsIndex, Object[] testParts) {
       boolean carry = true;  //add 1 to lowest order part.
       boolean maxIndex = true;
-      for (int testPartsIndexIndex = testPartsIndex.length; testPartsIndexIndex >= 0; --testPartsIndexIndex) {
+      //previously incorrect with testPartsIndexIndex = testPartsIndex.length
+      for (int testPartsIndexIndex = testPartsIndex.length - 1; testPartsIndexIndex >= 0; --testPartsIndexIndex) {
           int index = testPartsIndex[testPartsIndexIndex];
          ResultPair[] part = (ResultPair[]) testParts[testPartsIndexIndex];
          maxIndex &= (index == (part.length - 1));
          
          if (carry) {
             if (index < part.length - 1) {
-            	index--;
+                index++;//previously incorrect as index--
                testPartsIndex[testPartsIndexIndex] = index;
                carry = false;
             } else {
@@ -421,6 +422,87 @@ protected void setUp() {
       }
       
       return (!maxIndex);
+   }
+
+   //Hardcode the different parts of a url, pass it to incrementTestPartsIndex(int[] testPartsIndex, Object[] testParts)
+   //This should loop through and generate all the possibilities of the URLs -  all permutaitons of the individiual
+   //parts. Finally we keep track of how many times incrementTestPartsIndex allowed you to loop through. This is how
+   //many URLs were  generated which should match the product of each individual component array's
+   public void testIncrementTestPartsIndex(){
+
+       ResultPair[] sampleTestUrlScheme = {new ResultPair("http://", true),
+               new ResultPair("ftp://", true),
+               new ResultPair("h3t://", true),
+               new ResultPair("3ht://", false),
+               new ResultPair("http:/", false),
+               new ResultPair("http:", false),
+               new ResultPair("http/", false),
+               new ResultPair("://", false)};
+
+       ResultPair[] sampleTestUrlAuthority = {new ResultPair("www.google.com", true),
+               new ResultPair("www.google.com.", true),
+               new ResultPair("go.com", true),
+               new ResultPair("go.au", true),
+               new ResultPair("0.0.0.0", true),
+               new ResultPair("255.255.255.255", true),
+               new ResultPair("256.256.256.256", false),
+               new ResultPair("255.com", true),
+               new ResultPair("1.2.3.4.5", false),
+               new ResultPair("1.2.3.4.", false),
+               new ResultPair("1.2.3", false),
+               new ResultPair(".1.2.3.4", false),
+               new ResultPair("go.a", false),
+               new ResultPair("go.a1a", false),
+               new ResultPair("go.cc", true),
+               new ResultPair("go.1aa", false),
+               new ResultPair("aaa.", false),
+               new ResultPair(".aaa", false),
+               new ResultPair("aaa", false),
+               new ResultPair("", false)};
+
+       ResultPair[] sampleTestUrlPort = {new ResultPair(":80", true),
+               new ResultPair(":65535", true), // max possible
+               new ResultPair(":65536", false), // max possible +1
+               new ResultPair(":0", true),
+               new ResultPair("", true),
+               new ResultPair(":-1", false),
+               new ResultPair(":65636", false),
+               new ResultPair(":999999999999999999", false),
+               new ResultPair(":65a", false)};
+
+       ResultPair[] sampleTestPath = {new ResultPair("/test1", true),
+               new ResultPair("/t123", true),
+               new ResultPair("/$23", true),
+               new ResultPair("/..", false),
+               new ResultPair("/../", false),
+               new ResultPair("/test1/", true),
+               new ResultPair("", true),
+               new ResultPair("/test1/file", true),
+               new ResultPair("/..//file", false),
+               new ResultPair("/test1//file", false)};
+
+       ResultPair[] sampleTestUrlQuery = {new ResultPair("?action=view", true),
+               new ResultPair("?action=edit&mode=up", true),
+               new ResultPair("", true)};
+
+       Object[] sampleTestUrlParts = {sampleTestUrlScheme, sampleTestUrlAuthority, sampleTestUrlPort, sampleTestPath, sampleTestUrlQuery};
+
+       int[] sampleTestPartsIndex = {0, 0, 0, 0, 0};
+
+       int totUrlsGenerated =0;
+       int expectedNumUrls = sampleTestUrlScheme.length*sampleTestUrlAuthority.length*
+               sampleTestUrlPort.length*sampleTestPath.length*sampleTestUrlQuery.length;
+
+       do {
+           totUrlsGenerated++;
+
+       }while (incrementTestPartsIndex(sampleTestPartsIndex,sampleTestUrlParts));
+
+//       System.out.println(totUrlsGenerated + "tested");
+//       System.out.println(expectedNumUrls  + "were expected");
+
+       assertTrue(totUrlsGenerated==expectedNumUrls);
+
    }
 
    private String testPartsIndextoString() {
