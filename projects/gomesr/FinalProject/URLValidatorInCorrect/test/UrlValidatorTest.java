@@ -39,7 +39,7 @@ protected void setUp() {
       }
    }
 
-   public void testIsValid() {
+   public void testIsValidRandomTests() {
 //        testIsValid(testUrlParts, UrlValidator.ALLOW_ALL_SCHEMES);
 //        setUp();
 //        long options =
@@ -831,6 +831,297 @@ protected void setUp() {
        assertTrue(validator.isValid("http://example.com/serach?address=Main%20Avenue"));
        assertTrue(validator.isValid("http://example.com/serach?address=Main+Avenue"));
    }
+
+
+
+    /** Unit Test For Allowing Custom Schemes
+     * Two sets of arrays for authority, ports, and paths
+     * One set contains all valid parts other all invalid
+     * Schemes array contains schemes that are not valid by default
+     * and should only pass if schemes array is passed to UrlValidator constructor
+     *  **/
+    public void testSchemes() {
+        //custom schemes
+        String[] schemes = {"file", "rtsp", "session", "tag", "tel", "cid", "info"};
+
+        // valid parts
+        String[] schemesParts = {"rtsp://", "session://", "tag://", "tel://", "cid://", "info://"};
+        String[] authorityValid = {"www.google.com", "www.twitch.tv", "stackoverflow.com", "0.0.0.0", "go.au"};
+        String[] portValid = {":0", ":8080", ":80", ":65535"};
+        String[] pathsValid = {"/tests", "/123", "/$"};
+        String[] queriesValid = {"?action=view","?action=edit&mode=up", ""};
+
+        UrlValidator urlValidator1 = new UrlValidator(schemes);			//custom schemes should be allowed
+        UrlValidator urlValidator2 = new UrlValidator();					//custom schemes not allowed
+
+        // build URLs and test
+        for (int sIndex = 0; sIndex < schemesParts.length; sIndex++) {
+            StringBuilder test = new StringBuilder();
+            test.append(schemesParts[sIndex]);
+            for (int aIndex = 0; aIndex < authorityValid.length; aIndex++) {
+                test.append(authorityValid[aIndex]);
+                for (int pIndex = 0; pIndex < portValid.length; pIndex++) {
+                    test.append(portValid[pIndex]);
+                    for (int paIndex = 0; paIndex < pathsValid.length; paIndex++) {
+                        test.append(pathsValid[paIndex]);
+                        for (int qIndex = 0; qIndex < queriesValid.length; qIndex++) {
+                            test.append(queriesValid[qIndex]);
+                            String testUrl = test.toString();
+                            assertTrue(urlValidator1.isValid(testUrl));
+                            assertFalse(urlValidator2.isValid(testUrl));
+                        }
+                    }
+                }
+            }
+        }
+
+        // invalid parts (with exception of queries)
+        String[] authorityInvalid = {"256.256.256.256", "go.a1a", "toast", "1.2.3.4", "go."};
+        String[] portInvalid = {":999999999999999999", ":8080a", ":-1"};
+        String[] pathsInvalid = {"/..", "//file"};
+
+
+        // build URLs and test
+        for (int sIndex = 0; sIndex < schemesParts.length; sIndex++) {
+            StringBuilder test = new StringBuilder();
+            test.append(schemesParts[sIndex]);
+            for (int aIndex = 0; aIndex < authorityInvalid.length; aIndex++) {
+                test.append(authorityInvalid[aIndex]);
+                for (int pIndex = 0; pIndex < portInvalid.length; pIndex++) {
+                    test.append(portInvalid[pIndex]);
+                    for (int paIndex = 0; paIndex < pathsInvalid.length; paIndex++) {
+                        test.append(pathsInvalid[paIndex]);
+                        for (int qIndex = 0; qIndex < queriesValid.length; qIndex++) {
+                            test.append(queriesValid[qIndex]);
+                            String testUrl = test.toString();
+                            assertFalse(urlValidator1.isValid(testUrl));
+                            assertFalse(urlValidator2.isValid(testUrl));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+
+    //Hardcode the different parts of a url, pass it to incrementTestPartsIndex(int[] testPartsIndex, Object[] testParts)
+//This should loop through and generate all the possibilities of the URLs -  all permutaitons of the individiual
+//parts. Finally we keep track of how many times incrementTestPartsIndex allowed you to loop through. This is how
+//many URLs were  generated which should match the product of each individual component array's
+    public void testIncrementTestPartsIndex(){
+
+        ResultPair[] sampleTestUrlScheme = {new ResultPair("http://", true),
+                new ResultPair("ftp://", true),
+                new ResultPair("h3t://", true),
+                new ResultPair("3ht://", false),
+                new ResultPair("http:/", false),
+                new ResultPair("http:", false),
+                new ResultPair("http/", false),
+                new ResultPair("://", false)};
+
+        ResultPair[] sampleTestUrlAuthority = {new ResultPair("www.google.com", true),
+                new ResultPair("www.google.com.", true),
+                new ResultPair("go.com", true),
+                new ResultPair("go.au", true),
+                new ResultPair("0.0.0.0", true),
+                new ResultPair("255.255.255.255", true),
+                new ResultPair("256.256.256.256", false),
+                new ResultPair("255.com", true),
+                new ResultPair("1.2.3.4.5", false),
+                new ResultPair("1.2.3.4.", false),
+                new ResultPair("1.2.3", false),
+                new ResultPair(".1.2.3.4", false),
+                new ResultPair("go.a", false),
+                new ResultPair("go.a1a", false),
+                new ResultPair("go.cc", true),
+                new ResultPair("go.1aa", false),
+                new ResultPair("aaa.", false),
+                new ResultPair(".aaa", false),
+                new ResultPair("aaa", false),
+                new ResultPair("", false)};
+
+        ResultPair[] sampleTestUrlPort = {new ResultPair(":80", true),
+                new ResultPair(":65535", true), // max possible
+                new ResultPair(":65536", false), // max possible +1
+                new ResultPair(":0", true),
+                new ResultPair("", true),
+                new ResultPair(":-1", false),
+                new ResultPair(":65636", false),
+                new ResultPair(":999999999999999999", false),
+                new ResultPair(":65a", false)};
+
+        ResultPair[] sampleTestPath = {new ResultPair("/test1", true),
+                new ResultPair("/t123", true),
+                new ResultPair("/$23", true),
+                new ResultPair("/..", false),
+                new ResultPair("/../", false),
+                new ResultPair("/test1/", true),
+                new ResultPair("", true),
+                new ResultPair("/test1/file", true),
+                new ResultPair("/..//file", false),
+                new ResultPair("/test1//file", false)};
+
+        ResultPair[] sampleTestUrlQuery = {new ResultPair("?action=view", true),
+                new ResultPair("?action=edit&mode=up", true),
+                new ResultPair("", true)};
+
+        Object[] sampleTestUrlParts = {sampleTestUrlScheme, sampleTestUrlAuthority, sampleTestUrlPort, sampleTestPath, sampleTestUrlQuery};
+
+        int[] sampleTestPartsIndex = {0, 0, 0, 0, 0};
+
+        int totUrlsGenerated =0;
+        int expectedNumUrls = sampleTestUrlScheme.length*sampleTestUrlAuthority.length*
+                sampleTestUrlPort.length*sampleTestPath.length*sampleTestUrlQuery.length;
+
+        do {
+            totUrlsGenerated++;
+
+        }while (incrementTestPartsIndex(sampleTestPartsIndex,sampleTestUrlParts));
+
+//       System.out.println(totUrlsGenerated + "tested");
+//       System.out.println(expectedNumUrls  + "were expected");
+
+        assertTrue(totUrlsGenerated==expectedNumUrls);
+
+    }
+
+
+
+
+
+
+
+
+
+    public void testIsValidUnitTest() {
+//        testIsValid(testUrlParts, UrlValidator.ALLOW_ALL_SCHEMES);
+//        setUp();
+//        long options =
+//            UrlValidator.ALLOW_2_SLASHES
+//                + UrlValidator.ALLOW_ALL_SCHEMES
+//                + UrlValidator.NO_FRAGMENTS;
+//
+//        testIsValid(testUrlPartsOptions, options);
+        System.out.printf("\n------ Begin testIsValid() testing ------\n");
+        int passedTests =0;
+        int failedTests = 0;
+        UrlValidator urlTest1 = new UrlValidator(null, null, UrlValidator.ALLOW_ALL_SCHEMES);
+        System.out.println();	// Newline
+
+        /* Array of URL authorities: 5 Valid, 5 Invalid. */
+        String authorities[] = {
+                "google.com",	// Valid = True
+                "www.twitch.tv",	// Valid = True
+                "oregonstate.edu",	// Valid = True
+                "github.com",	// Valid = True
+                "255.255.255.255",	// Valid = True
+                "256.256.256.256",	// Valid = False
+                "",	// Valid = False
+                "google.a",	// Valid = False
+                "1.2.3.4.5",	// Valid = False
+                "facebook.1aa"	// Valid = False
+        };
+
+        /* Boolean array corresponding with the validity of the authorities from the array listed above. */
+        boolean validAuthorities[] = {
+                true, true, true, true, true, false, false, false, false, false
+        };
+
+        /* Array of URL schemes: 3 Valid, 5 Invalid. */
+        String schemes[] = {
+                "http://",	// Valid = True
+                "ftp://",	// Valid = True
+                "h3t://",	// Valid = True
+                "3ht://",	// Valid = False
+                "http:/",	// Valid = False
+                "http:",	// Valid = False
+                "http/",	// Valid = False
+                "://"	// Valid = False
+        };
+
+        /* Boolean array corresponding with the validity of the schemes from the array listed above. */
+        Boolean validSchemes[] = {
+                true, true, true, false, false, false, false, false
+        };
+
+        /* Array of URL paths: 6 Valid, 4 Invalid. */
+        String paths[] = {
+                "/test1",	// Valid = True
+                "/t123",	// Valid = True
+                "/$23",	// Valid = True
+                "/..",	// Valid = False
+                "/../",	// Valid = False
+                "/test1/",	// Valid = True
+                "",	// Valid = True
+                "/test1/file",	// Valid = True
+                "/..//file",	// Valid = False
+                "/test1//file"	// Valid = False
+        };
+
+        /* Boolean array corresponding with the validity of the paths from the array listed above. */
+        Boolean validPaths[] = {
+                true, true, true, false, false, true, true, true, false, false
+        };
+
+        String ports[] = {
+                ":80",	// Valid = True
+                ":65535",	// Valid = True
+                ":65536",	// Valid = False
+                ":0",	// Valid = True
+                "",	// Valid = True
+                ":-1",	// Valid = False
+                ":65636",	// Valid = False
+                ":999999999999999999",	// Valid = False
+                ":65a",	// Valid = False
+        };
+
+        Boolean validPorts[] = {
+                true, true, false, true, true, false, false, false, false
+        };
+
+        String queries[] = {
+                "?action=view",	// Valid = True
+                "?action=edit&mode=up", // Valid = True
+                "",	// Valid = True
+                "@action=edit",	// Valid = False
+                "&action=edit&mode=up",	// Valid = False
+                "!action=view",	// Valid = False
+        };
+
+        Boolean validQueries[] = {
+                true, true, true, false, false, false
+        };
+
+    /* A complete URL is composed of a scheme+authority+port+path+query, all
+    of which must be individually valid for the entire URL to be considered valid. */
+        /* Automate the construction of URL based on the parameters above. */
+        for(int i = 0; i < schemes.length; i++) {
+            for(int j = 0; j < authorities.length; j++) {
+                for(int k = 0; k < ports.length; k++) {
+                    for(int l = 0; l < paths.length; l++) {
+                        for(int m = 0; m < queries.length; m++) {
+                            String testUrl = schemes[i] + authorities[j] + ports[k] + paths[l] + queries[m];	// Construct a URL.
+                            boolean validUrl = validSchemes[i] && validAuthorities[j] && validPorts[k] && validPaths[l] && validQueries[m];
+                            System.out.printf("\"%s\" is ", testUrl);
+                            /* If all parameters are true and match its corresponding boolean, a valid URL has been constructed: */
+                            if (urlTest1.isValid(testUrl) && validUrl) {
+                                System.out.print("a valid URL (Test: PASSED)\n");
+                                passedTests++;
+                            }
+                            else {
+                                System.out.print("an invalid URL (Test: FAILED)\n");
+                                failedTests++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        System.out.printf("\n------ testIsValid() Test Results ------\n");
+        System.out.printf("Number of tests passed: %d\n", passedTests);
+        System.out.printf("Number of tests failed: %d\n", failedTests);
+    }
 
    //-------------------- Test data for creating a composite URL
    /**
